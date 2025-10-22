@@ -1,0 +1,15 @@
+# metallb-config.yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: local-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 172.18.10.100-172.18.10.200  # ← 可用的 IP 范围
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: local-l2
+  namespace: metallb-system

@@ -1,0 +1,78 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+servers: 1
+agents: 2
+metadata:
+  name: mycluster-prod
+
+kubeAPI:
+  host: "localhost"
+  hostIP: "127.0.0.1"
+  hostPort: "6445"
+image: rancher/k3s:v1.31.5-k3s1
+network: mynet
+#subnet: "172.28.0.0/16"
+#token: superSecretToken
+volumes:
+  - volume: /myk3d/host/path:/path/in/node
+    nodeFilters:
+      - server:0
+      - agent:*
+ports:
+  - port: 8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 6443:443
+    nodeFilters:	
+      - loadbalancer
+env:
+  - envVar: bar=baz
+    nodeFilters:
+      - server:0
+
+        #registries:
+        #  create:
+        #    name: registry.localhost
+        #    host: "0.0.0.0"
+        #    hostPort: "5000"
+        #  config: |
+        #    mirrors:
+        #      "registry.localhost":
+        #        endpoint:
+        #          - http://localhost:5000
+
+        #registries:
+        #config: |
+        #mirrors:
+        #docker.io:
+        # endpoint:
+        # - "https://docker.1ms.run"
+        # - "https://registry-1.docker.io"
+
+options:
+  k3d:
+    wait: true
+    timeout: "60s"
+    disableLoadbalancer: false
+    disableImageVolume: false
+    disableRollback: false
+    loadbalancer:
+      configOverrides:
+        - settings.workerConnections=2048
+  k3s:
+    extraArgs:
+      - arg: --tls-san=localhost
+        nodeFilters:
+          - server:*
+    nodeLabels:
+      - label: foo=bar
+        nodeFilters:
+          - agent:1
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+  runtime:	
+    labels:
+      - label: bar=baz # same as `--runtime-label 'bar=baz@agent:1'` -> this results in a runtime (docker) container label
+        nodeFilters:
+          - agent:1
